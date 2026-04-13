@@ -1,0 +1,79 @@
+# sentinel.conf.example
+#
+# SENTINEL-D Configuration Template
+# ===================================
+# Copy this file to "sentinel.conf" and fill in your values.
+# Lines beginning with '#' are comments and are ignored.
+# Whitespace around keys and values is stripped.
+# All keys can also be set as environment variables (which take precedence).
+#
+# Required keys: ENDPOINTS, DISCORD_WEBHOOK_URL
+# All other keys have sensible defaults.
+
+# -----------------------------------------------------------------------
+# Identity
+# -----------------------------------------------------------------------
+
+# Human-readable service name shown in alerts.
+SERVICE_NAME=my-service
+
+# Deployment environment (production, staging, dev, etc.)
+ENVIRONMENT=production
+
+# -----------------------------------------------------------------------
+# Health check behaviour
+# -----------------------------------------------------------------------
+
+# How often (in seconds) to poll all endpoints.
+CHECK_INTERVAL_SECONDS=30
+
+# Per-request HTTP timeout (seconds).  If exceeded, counted as a failure.
+HTTP_TIMEOUT_SECONDS=10
+
+# Number of times to retry a failed request before declaring it unhealthy.
+# 0 = no retries (one attempt only).
+RETRY_COUNT=0
+
+# Number of consecutive failures required before sending the first alert.
+# Set to 1 to alert on the very first failure.
+FAILURE_THRESHOLD=2
+
+# Minimum seconds between repeated alerts for the same endpoint.
+# Prevents alert spam during prolonged outages.
+COOLDOWN_SECONDS=300
+
+# -----------------------------------------------------------------------
+# Endpoints (required)
+# -----------------------------------------------------------------------
+# Comma-separated list of HTTP/HTTPS URLs to monitor.
+# All URLs must return HTTP 200 to be considered healthy.
+#
+# Examples:
+#   ENDPOINTS=https://api.example.com/health
+#   ENDPOINTS=https://api.example.com/health,https://api.example.com/ready
+#   ENDPOINTS=http://internal-service:8080/ping,https://payments.example.com/health
+
+ENDPOINTS=https://your-service.example.com/health
+
+# -----------------------------------------------------------------------
+# Alerting (required)
+# -----------------------------------------------------------------------
+# Discord webhook URL.  Keep this secret — never commit it to version control.
+# You can also set this via the DISCORD_WEBHOOK_URL environment variable.
+
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+
+# -----------------------------------------------------------------------
+# Observability
+# -----------------------------------------------------------------------
+
+# Log level: DEBUG, INFO, WARN, ERROR
+LOG_LEVEL=INFO
+
+# Path to log file.  Leave empty to write to stderr.
+# When running as a daemon, a log file path is strongly recommended.
+LOG_FILE=/var/log/sentinel-d.log
+
+# Path for the PID file.  Leave empty to skip PID file creation.
+# Used to prevent duplicate daemon instances.
+PID_FILE=/var/run/sentinel-d.pid
