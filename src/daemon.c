@@ -18,7 +18,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
+#include <signal.h> /* for kill() */
 /* ---------------------------------------------------------------------------
  * daemon_start
  *
@@ -37,28 +39,33 @@ int daemon_start(void)
 
     /* --- Fork #1 --- */
     pid = fork();
-    if (pid < 0) {
+    if (pid < 0)
+    {
         perror("fork #1");
         return -1;
     }
-    if (pid > 0) {
+    if (pid > 0)
+    {
         /* Parent exits; child continues. */
         exit(EXIT_SUCCESS);
     }
 
     /* --- Become session leader --- */
-    if (setsid() < 0) {
+    if (setsid() < 0)
+    {
         perror("setsid");
         return -1;
     }
 
     /* --- Fork #2: ensure we can't re-acquire a terminal --- */
     pid = fork();
-    if (pid < 0) {
+    if (pid < 0)
+    {
         perror("fork #2");
         return -1;
     }
-    if (pid > 0) {
+    if (pid > 0)
+    {
         exit(EXIT_SUCCESS);
     }
 
@@ -66,21 +73,24 @@ int daemon_start(void)
     umask(0);
 
     /* --- Move to a safe directory --- */
-    if (chdir("/") < 0) {
+    if (chdir("/") < 0)
+    {
         perror("chdir");
         return -1;
     }
 
     /* --- Redirect standard streams to /dev/null --- */
     int devnull = open("/dev/null", O_RDWR);
-    if (devnull < 0) {
+    if (devnull < 0)
+    {
         perror("open /dev/null");
         return -1;
     }
     dup2(devnull, STDIN_FILENO);
     dup2(devnull, STDOUT_FILENO);
     dup2(devnull, STDERR_FILENO);
-    if (devnull > STDERR_FILENO) {
+    if (devnull > STDERR_FILENO)
+    {
         close(devnull);
     }
 
@@ -93,10 +103,12 @@ int daemon_start(void)
 
 int daemon_write_pidfile(const char *path)
 {
-    if (!path || path[0] == '\0') return 0;
+    if (!path || path[0] == '\0')
+        return 0;
 
     FILE *fp = fopen(path, "w");
-    if (!fp) {
+    if (!fp)
+    {
         LOG_ERROR("Failed to open PID file '%s': %s", path, strerror(errno));
         return -1;
     }
@@ -108,36 +120,45 @@ int daemon_write_pidfile(const char *path)
 
 void daemon_remove_pidfile(const char *path)
 {
-    if (!path || path[0] == '\0') return;
-    if (unlink(path) < 0 && errno != ENOENT) {
+    if (!path || path[0] == '\0')
+        return;
+    if (unlink(path) < 0 && errno != ENOENT)
+    {
         LOG_WARN("Could not remove PID file '%s': %s", path, strerror(errno));
     }
 }
 
 int daemon_already_running(const char *path)
 {
-    if (!path || path[0] == '\0') return 0;
+    if (!path || path[0] == '\0')
+        return 0;
 
     FILE *fp = fopen(path, "r");
-    if (!fp) {
-        if (errno == ENOENT) return 0; /* no PID file → not running */
+    if (!fp)
+    {
+        if (errno == ENOENT)
+            return 0; /* no PID file → not running */
         return -1;
     }
 
     long existing_pid = 0;
-    if (fscanf(fp, "%ld", &existing_pid) != 1) {
+    if (fscanf(fp, "%ld", &existing_pid) != 1)
+    {
         fclose(fp);
         return 0; /* unreadable PID file → assume stale */
     }
     fclose(fp);
 
-    if (existing_pid <= 0) return 0;
+    if (existing_pid <= 0)
+        return 0;
 
     /* Signal 0 checks existence without sending anything */
-    if (kill((pid_t)existing_pid, 0) == 0) {
+    if (kill((pid_t)existing_pid, 0) == 0)
+    {
         return 1; /* process is alive */
     }
-    if (errno == ESRCH) {
+    if (errno == ESRCH)
+    {
         return 0; /* process no longer exists → stale PID file */
     }
     return -1; /* EPERM or other error */

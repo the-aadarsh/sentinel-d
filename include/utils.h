@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <time.h>
+#include <stdio.h>
 
 /* ---------------------------------------------------------------------------
  * String helpers

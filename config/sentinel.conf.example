@@ -15,7 +15,7 @@
 # -----------------------------------------------------------------------
 
 # Human-readable service name shown in alerts.
-SERVICE_NAME=my-service
+SERVICE_NAME=PaperPeel
 
 # Deployment environment (production, staging, dev, etc.)
 ENVIRONMENT=production
@@ -53,7 +53,7 @@ COOLDOWN_SECONDS=300
 #   ENDPOINTS=https://api.example.com/health,https://api.example.com/ready
 #   ENDPOINTS=http://internal-service:8080/ping,https://payments.example.com/health
 
-ENDPOINTS=https://your-service.example.com/health
+ENDPOINTS=https://api.paperpeel.xyz/health
 
 # -----------------------------------------------------------------------
 # Alerting (required)
@@ -61,7 +61,7 @@ ENDPOINTS=https://your-service.example.com/health
 # Discord webhook URL.  Keep this secret — never commit it to version control.
 # You can also set this via the DISCORD_WEBHOOK_URL environment variable.
 
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/1494286221600489655/dYzoIWdHYD28VbcURnP9kxefK_4hT246STIc3KDfuXV7jNQGFPMes6DA5F7CRzcfIXmU
 
 # -----------------------------------------------------------------------
 # Observability
