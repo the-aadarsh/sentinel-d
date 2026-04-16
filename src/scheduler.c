@@ -13,6 +13,10 @@
  * SIGTERM / SIGINT handlers.
  */
 
+/* Feature test macros for POSIX compatibility */
+#define _POSIX_C_SOURCE 200112L
+#define _DEFAULT_SOURCE
+
 #include "scheduler.h"
 #include "http_client.h"
 #include "alert.h"
@@ -44,17 +48,21 @@ static void handle_signal(int sig)
 static void interruptible_sleep(int seconds)
 {
     struct timespec remaining = {
-        .tv_sec  = seconds,
-        .tv_nsec = 0
-    };
-    while (!g_stop) {
+        .tv_sec = seconds,
+        .tv_nsec = 0};
+    while (!g_stop)
+    {
         struct timespec interrupted = {0};
         int rc = nanosleep(&remaining, &interrupted);
-        if (rc == 0) break;                     /* slept full duration */
-        if (errno == EINTR) {
-            remaining = interrupted;            /* partial sleep, retry */
-        } else {
-            break;                              /* unexpected error */
+        if (rc == 0)
+            break; /* slept full duration */
+        if (errno == EINTR)
+        {
+            remaining = interrupted; /* partial sleep, retry */
+        }
+        else
+        {
+            break; /* unexpected error */
         }
     }
 }
@@ -66,29 +74,34 @@ static void interruptible_sleep(int seconds)
 void scheduler_init_states(EndpointState *states, const SentinelConfig *cfg)
 {
     memset(states, 0, sizeof(EndpointState) * (size_t)cfg->endpoint_count);
-    for (int i = 0; i < cfg->endpoint_count; i++) {
+    for (int i = 0; i < cfg->endpoint_count; i++)
+    {
         states[i].url = cfg->endpoints[i];
     }
 }
 
 void scheduler_process_result(EndpointState *state,
-                               const SentinelConfig *cfg,
-                               const HttpResult *result)
+                              const SentinelConfig *cfg,
+                              const HttpResult *result)
 {
     int healthy = (result->error == HTTP_ERR_NONE && result->status_code == 200);
 
     state->total_checks++;
 
-    if (healthy) {
+    if (healthy)
+    {
         LOG_DEBUG("Check OK  %s  HTTP %d  %ldms",
                   state->url, result->status_code, result->latency_ms);
 
-        if (state->is_alerting) {
+        if (state->is_alerting)
+        {
             /* Recovering from a failure state → send recovery notification */
-            state->is_alerting      = 0;
+            state->is_alerting = 0;
             state->consecutive_fail = 0;
             alert_send_recovery(cfg, state->url);
-        } else {
+        }
+        else
+        {
             state->consecutive_fail = 0;
         }
         return;
@@ -98,20 +111,24 @@ void scheduler_process_result(EndpointState *state,
     state->consecutive_fail++;
     state->total_failures++;
 
-    if (result->error != HTTP_ERR_NONE) {
+    if (result->error != HTTP_ERR_NONE)
+    {
         LOG_WARN("Check FAIL %s  error=%s (%s)  consecutive=%d",
                  state->url,
                  http_error_str(result->error),
                  result->error_msg,
                  state->consecutive_fail);
-    } else {
+    }
+    else
+    {
         LOG_WARN("Check FAIL %s  HTTP %d  %ldms  consecutive=%d",
                  state->url, result->status_code, result->latency_ms,
                  state->consecutive_fail);
     }
 
     /* Apply failure threshold: only alert after N consecutive failures. */
-    if (state->consecutive_fail < cfg->failure_threshold) {
+    if (state->consecutive_fail < cfg->failure_threshold)
+    {
         LOG_DEBUG("Below failure threshold (%d/%d), not alerting yet",
                   state->consecutive_fail, cfg->failure_threshold);
         return;
@@ -119,9 +136,11 @@ void scheduler_process_result(EndpointState *state,
 
     /* Apply cooldown: don't re-send alerts too frequently. */
     time_t now = time(NULL);
-    if (state->is_alerting) {
+    if (state->is_alerting)
+    {
         double elapsed = difftime(now, state->last_alert_time);
-        if (elapsed < (double)cfg->cooldown_seconds) {
+        if (elapsed < (double)cfg->cooldown_seconds)
+        {
             LOG_DEBUG("Alert cooldown active (%.0fs remaining)",
                       (double)cfg->cooldown_seconds - elapsed);
             return;
@@ -129,7 +148,7 @@ void scheduler_process_result(EndpointState *state,
     }
 
     /* Send the alert */
-    state->is_alerting    = 1;
+    state->is_alerting = 1;
     state->last_alert_time = now;
     alert_send(cfg, state->url, result, state->consecutive_fail);
 }
@@ -141,7 +160,7 @@ void scheduler_run(const SentinelConfig *cfg)
     sa.sa_handler = handle_signal;
     sigemptyset(&sa.sa_mask);
     sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGINT,  &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
 
     /* Allocate per-endpoint state on the stack (max endpoints bounded). */
     EndpointState states[CONFIG_MAX_ENDPOINTS];
@@ -150,19 +169,23 @@ void scheduler_run(const SentinelConfig *cfg)
     LOG_INFO("Scheduler started: %d endpoint(s), interval=%ds",
              cfg->endpoint_count, cfg->check_interval_seconds);
 
-    while (!g_stop) {
+    while (!g_stop)
+    {
         char ts[32];
         time_iso8601(ts, sizeof(ts));
         LOG_INFO("Poll cycle start [%s]", ts);
 
-        for (int i = 0; i < cfg->endpoint_count && !g_stop; i++) {
+        for (int i = 0; i < cfg->endpoint_count && !g_stop; i++)
+        {
             const char *url = cfg->endpoints[i];
 
             /* Optional retry loop */
             HttpResult result = {0};
             int attempt;
-            for (attempt = 0; attempt <= cfg->retry_count; attempt++) {
-                if (attempt > 0) {
+            for (attempt = 0; attempt <= cfg->retry_count; attempt++)
+            {
+                if (attempt > 0)
+                {
                     LOG_DEBUG("Retry %d/%d for %s", attempt, cfg->retry_count, url);
                 }
                 http_check(url, cfg->http_timeout_seconds, &result);
@@ -173,7 +196,8 @@ void scheduler_run(const SentinelConfig *cfg)
             scheduler_process_result(&states[i], cfg, &result);
         }
 
-        if (!g_stop) {
+        if (!g_stop)
+        {
             LOG_DEBUG("Poll cycle done, sleeping %ds", cfg->check_interval_seconds);
             interruptible_sleep(cfg->check_interval_seconds);
         }
@@ -182,7 +206,8 @@ void scheduler_run(const SentinelConfig *cfg)
     LOG_INFO("Scheduler received shutdown signal — stopping gracefully");
 
     /* Print a final summary */
-    for (int i = 0; i < cfg->endpoint_count; i++) {
+    for (int i = 0; i < cfg->endpoint_count; i++)
+    {
         LOG_INFO("Endpoint summary [%s]: checks=%lld failures=%lld",
                  states[i].url,
                  states[i].total_checks,

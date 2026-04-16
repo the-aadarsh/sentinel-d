@@ -6,6 +6,10 @@
  * tracked and prevented from running in duplicate.
  */
 
+/* Feature test macros for POSIX compatibility */
+#define _POSIX_C_SOURCE 200112L
+#define _DEFAULT_SOURCE
+
 #include "daemon.h"
 #include "logger.h"
 
@@ -19,8 +23,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-#include <signal.h> /* for kill() */
 /* ---------------------------------------------------------------------------
  * daemon_start
  *

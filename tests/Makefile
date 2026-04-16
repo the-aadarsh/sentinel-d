@@ -9,8 +9,9 @@ CFLAGS  := -std=c11 \
            -I$(TOPDIR)/include
 
 # Sources from the main project that tests depend on
-# (exclude main.c, daemon.c, http_client.c – not needed for pure unit tests)
+# (exclude main.c, daemon.c – not needed for unit tests)
 COMMON_SRCS := $(TOPDIR)/src/config.c    \
+               $(TOPDIR)/src/http_client.c \
                $(TOPDIR)/src/logger.c    \
                $(TOPDIR)/src/utils.c     \
                $(TOPDIR)/src/alert.c     \
@@ -45,12 +46,14 @@ test_config: test_config.c \
 test_utils: test_utils.c $(TOPDIR)/src/utils.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Alert payload test: needs alert.c + config.c + logger.c + utils.c
+# Alert payload test: needs alert.c + config.c + logger.c + utils.c + http_client.c
+# alert.c calls http_error_str() from http_client.c
 # alert.c links OpenSSL (for webhook_post), which is fine even for unit tests
 # since alert_build_payload() doesn't touch the network.
 test_alert_payload: test_alert_payload.c \
                     $(TOPDIR)/src/alert.c     \
                     $(TOPDIR)/src/config.c    \
+                    $(TOPDIR)/src/http_client.c \
                     $(TOPDIR)/src/logger.c    \
                     $(TOPDIR)/src/utils.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

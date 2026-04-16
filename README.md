@@ -51,10 +51,10 @@ Because SENTINEL-D relies heavily on POSIX APIs (like UNIX socket connections an
    sudo apt install build-essential make gcc libssl-dev
    ```
 
-4. Navigate to your project folder. Your Windows files are accessible in WSL under the `/mnt/c/` directory. For example:
+4. Navigate to your project folder. Your Windows files are accessible in WSL under the `/mnt/d/` directory. For example:
 
    ```bash
-   cd /mnt/c/Users/YourUsername/Desktop/sentinel-d
+   cd /mnt/d/projects/sentinel-d
    ```
 
 5. You can now follow the standard **Build Instructions** and run the program within this terminal.

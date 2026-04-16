@@ -7,6 +7,10 @@
  * Environment variables override file values when present.
  */
 
+/* Feature test macros for POSIX compatibility */
+#define _POSIX_C_SOURCE 200112L
+#define _DEFAULT_SOURCE
+
 #include "config.h"
 #include "logger.h"
 #include "utils.h"
@@ -16,12 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-
-#include <unistd.h> /* for POSIX functions */
-#include <string.h> /* for strtok_r, strdup */
-
-#include <strings.h> /* for POSIX strtok_r */
-#include <stdlib.h>  /* for strdup */
+#include <unistd.h>
 
 /* ---------------------------------------------------------------------------
  * Internal helpers

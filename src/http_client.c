@@ -10,6 +10,10 @@
  *   - No heap allocation of large buffers; stack buffers are bounded.
  */
 
+/* Feature test macros for POSIX compatibility */
+#define _POSIX_C_SOURCE 200112L
+#define _DEFAULT_SOURCE
+
 #include "http_client.h"
 #include "utils.h"
 #include "logger.h"
@@ -19,15 +23,10 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <netdb.h>     /* for struct addrinfo, getaddrinfo, freeaddrinfo */
-#include <netdb.h>     /* for struct addrinfo, getaddrinfo, freeaddrinfo */
-#include <sys/types.h> /* for struct addrinfo on some systems */
 #include <sys/types.h>
-/* Ensure <netdb.h> is included before any use of struct addrinfo */
 #include <sys/socket.h>
 #include <sys/time.h>
-#include <sys/types.h> /* for struct addrinfo on some systems */
-#include <netdb.h>     /* for struct addrinfo, getaddrinfo, freeaddrinfo */
+#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
